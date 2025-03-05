@@ -34,7 +34,12 @@ class CarInterface(CarInterfaceBase):
       
     elif ret.flags & VolkswagenFlags.MEB:
       # Set global MEB parameters
-      ret.safetyConfigs = [get_safety_config(structs.CarParams.SafetyModel.volkswagenMeb)]
+      # -YJ-
+    #   ret.safetyConfigs = [get_safety_config(structs.CarParams.SafetyModel.volkswagenMeb)]
+      cfgs = [get_safety_config(structs.CarParams.SafetyModel.volkswagenMeb), ]
+      cfgs.insert(0, get_safety_config(structs.CarParams.SafetyModel.noOutput))
+      ret.safetyConfigs = cfgs
+      
       ret.enableBsm = 0x24C in fingerprint[0]  # MEB_Side_Assist_01
       ret.transmissionType = TransmissionType.direct
       ret.steerControlType = structs.CarParams.SteerControlType.angle

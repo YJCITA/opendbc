@@ -147,8 +147,9 @@ class CarControllerParams:
 
 
 class CANBUS:
-  pt = 0
-  cam = 2
+  pt = 4
+  cam = 6
+  
 
 
 class WMI(StrEnum):
