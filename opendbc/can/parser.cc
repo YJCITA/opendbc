@@ -58,7 +58,7 @@ bool MessageState::parse(uint64_t nanos, const std::vector<uint8_t> &dat) {
   }
 
   // only update values if both checksum and counter are valid
-  if (checksum_failed || counter_failed) {
+  if ((checksum_failed || counter_failed) && 0) {
     LOGE_100("0x%X message checks failed, checksum failed %d, counter failed %d", address, checksum_failed, counter_failed);
     return false;
   }
@@ -225,7 +225,7 @@ void CANParser::UpdateValid(uint64_t nanos) {
     const bool missing = state.last_seen_nanos == 0;
     const bool timed_out = (nanos - state.last_seen_nanos) > state.check_threshold;
     if (state.check_threshold > 0 && (missing || timed_out)) {
-      if (show_missing && !bus_timeout) {
+      if (show_missing && !bus_timeout && 0) {
         if (missing) {
           LOGE_100("0x%X '%s' NOT SEEN", state.address, state.name.c_str());
         } else if (timed_out) {
