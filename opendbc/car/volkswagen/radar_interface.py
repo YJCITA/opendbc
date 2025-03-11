@@ -49,6 +49,7 @@ class RadarInterface(RadarInterfaceBase):
     ret = structs.RadarData()
 
     if self.rcp is None or not self.rcp.can_valid:
+      print("VM radarcanError !!!!!")
       ret.errors = ["canError"]
       return ret
 
@@ -74,6 +75,7 @@ class RadarInterface(RadarInterfaceBase):
               "rel_velo": msg[rel_velo]
             }
           else:
+            print("VM radar canError 22222 !!!!!")
             ret.errors = ["canError"]
             return ret
             
