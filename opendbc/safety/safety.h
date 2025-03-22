@@ -22,6 +22,8 @@
 #include "safety/safety_elm327.h"
 #include "safety/safety_body.h"
 
+#include "safety/safety_neta.h"
+
 // CAN-FD only safety modes
 #ifdef CANFD
 #include "safety/safety_hyundai_canfd.h"
@@ -56,6 +58,8 @@
 #define SAFETY_HYUNDAI_CANFD 28U
 #define SAFETY_RIVIAN 33U
 #define SAFETY_VOLKSWAGEN_MEB 34U
+
+#define SAFETY_NETA 29U
 
 uint32_t GET_BYTES(const CANPacket_t *msg, int start, int len) {
   uint32_t ret = 0U;
@@ -323,6 +327,33 @@ void gen_crc_lookup_table_16(uint16_t poly, uint16_t crc_lut[]) {
 }
 #endif
 
+// -YJ-
+bool msg_allowed(const CANPacket_t *to_send, const CanMsg msg_list[], int len) {
+  int addr = GET_ADDR(to_send);
+  int bus = GET_BUS(to_send);
+  int length = GET_LEN(to_send);
+
+  bool allowed = false;
+  for (int i = 0; i < len; i++) {
+    if ((addr == msg_list[i].addr) && (bus == msg_list[i].bus) && (length == msg_list[i].len)) {
+      allowed = true;
+      break;
+    }
+  }
+  return allowed;
+}
+
+bool msg_allowed_yj(int bus, int addr, const CanMsg msg_list[], int len) {
+  bool allowed = false;
+  for (int i = 0; i < len; i++) {
+    if ((addr == msg_list[i].addr) && (bus == msg_list[i].bus)) {
+      allowed = true;
+      break;
+    }
+  }
+  return allowed;
+}
+
 // 1Hz safety function called by main. Now just a check for lagging safety messages
 void safety_tick(const safety_config *cfg) {
   const uint8_t MAX_MISSED_MSGS = 10U;
@@ -415,6 +446,7 @@ int set_safety_hooks(uint16_t mode, uint16_t param) {
     {SAFETY_BODY, &body_hooks},
     {SAFETY_FORD, &ford_hooks},
     {SAFETY_RIVIAN, &rivian_hooks},
+    {SAFETY_NETA, &neta_hooks},
 #ifdef CANFD
     {SAFETY_HYUNDAI_CANFD, &hyundai_canfd_hooks},
 #endif
