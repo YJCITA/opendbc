@@ -41,8 +41,6 @@ class CarControllerParams:
   ACCEL_MIN = -3.5                         # 3.5 m/s max deceleration
 
   def __init__(self, CP):
-    can_define = CANDefine(DBC[CP.carFingerprint][Bus.pt])
-
     if CP.flags & VolkswagenFlags.PQ:
       self.LDW_STEP = 5                   # LDW_1 message frequency 20Hz
       self.ACC_HUD_STEP = 4               # ACC_GRA_Anzeige frequency 25Hz
@@ -50,61 +48,12 @@ class CarControllerParams:
       self.STEER_DELTA_UP = 6             # Max HCA reached in 1.00s (STEER_MAX / (50Hz * 1.00))
       self.STEER_DELTA_DOWN = 10          # Min HCA reached in 0.60s (STEER_MAX / (50Hz * 0.60))
 
-      if CP.transmissionType == TransmissionType.automatic:
-        self.shifter_values = can_define.dv["Getriebe_1"]["Waehlhebelposition__Getriebe_1_"]
-      self.hca_status_values = can_define.dv["Lenkhilfe_2"]["LH2_Sta_HCA"]
-
-      self.BUTTONS = [
-        Button(structs.CarState.ButtonEvent.Type.setCruise, "GRA_Neu", "GRA_Neu_Setzen", [1]),
-        Button(structs.CarState.ButtonEvent.Type.resumeCruise, "GRA_Neu", "GRA_Recall", [1]),
-        Button(structs.CarState.ButtonEvent.Type.accelCruise, "GRA_Neu", "GRA_Up_kurz", [1]),
-        Button(structs.CarState.ButtonEvent.Type.decelCruise, "GRA_Neu", "GRA_Down_kurz", [1]),
-        Button(structs.CarState.ButtonEvent.Type.cancel, "GRA_Neu", "GRA_Abbrechen", [1]),
-        Button(structs.CarState.ButtonEvent.Type.gapAdjustCruise, "GRA_Neu", "GRA_Zeitluecke", [1]),
-      ]
-
-      self.LDW_MESSAGES = {
-        "none": 0,  # Nothing to display
-        "laneAssistUnavail": 1,  # "Lane Assist currently not available."
-        "laneAssistUnavailSysError": 2,  # "Lane Assist system error"
-        "laneAssistUnavailNoSensorView": 3,  # "Lane Assist not available. No sensor view."
-        "laneAssistTakeOver": 4,  # "Lane Assist: Please Take Over Steering"
-        "laneAssistDeactivTrailer": 5,  # "Lane Assist: no function with trailer"
-      }
-
     else:
       self.LDW_STEP = 10                  # LDW_02 message frequency 10Hz
       self.ACC_HUD_STEP = 6               # ACC_02 message frequency 16Hz
       self.STEER_DRIVER_ALLOWANCE = 80    # Driver intervention threshold 0.8 Nm
       self.STEER_DELTA_UP = 4             # Max HCA reached in 1.50s (STEER_MAX / (50Hz * 1.50))
       self.STEER_DELTA_DOWN = 10          # Min HCA reached in 0.60s (STEER_MAX / (50Hz * 0.60))
-
-      if CP.transmissionType == TransmissionType.automatic:
-        self.shifter_values = can_define.dv["Gateway_73"]["GE_Fahrstufe"]
-      elif CP.transmissionType == TransmissionType.direct:
-        self.shifter_values = can_define.dv["Motor_EV_01"]["MO_Waehlpos"]
-      self.hca_status_values = can_define.dv["LH_EPS_03"]["EPS_HCA_Status"]
-
-      self.BUTTONS = [
-        Button(structs.CarState.ButtonEvent.Type.setCruise, "GRA_ACC_01", "GRA_Tip_Setzen", [1]),
-        Button(structs.CarState.ButtonEvent.Type.resumeCruise, "GRA_ACC_01", "GRA_Tip_Wiederaufnahme", [1]),
-        Button(structs.CarState.ButtonEvent.Type.accelCruise, "GRA_ACC_01", "GRA_Tip_Hoch", [1]),
-        Button(structs.CarState.ButtonEvent.Type.decelCruise, "GRA_ACC_01", "GRA_Tip_Runter", [1]),
-        Button(structs.CarState.ButtonEvent.Type.cancel, "GRA_ACC_01", "GRA_Abbrechen", [1]),
-        Button(structs.CarState.ButtonEvent.Type.gapAdjustCruise, "GRA_ACC_01", "GRA_Verstellung_Zeitluecke", [1]),
-      ]
-
-      self.LDW_MESSAGES = {
-        "none": 0,                            # Nothing to display
-        "laneAssistUnavailChime": 1,          # "Lane Assist currently not available." with chime
-        "laneAssistUnavailNoSensorChime": 3,  # "Lane Assist not available. No sensor view." with chime
-        "laneAssistTakeOverUrgent": 4,        # "Lane Assist: Please Take Over Steering" with urgent beep
-        "emergencyAssistUrgent": 6,           # "Emergency Assist: Please Take Over Steering" with urgent beep
-        "laneAssistTakeOverChime": 7,         # "Lane Assist: Please Take Over Steering" with chime
-        "laneAssistTakeOver": 8,              # "Lane Assist: Please Take Over Steering" silent
-        "emergencyAssistChangingLanes": 9,    # "Emergency Assist: Changing lanes..." with urgent beep
-        "laneAssistDeactivated": 10,          # "Lane Assist deactivated." silent with persistent icon afterward
-      }
 
 
 class CANBUS:

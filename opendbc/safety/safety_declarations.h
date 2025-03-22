@@ -199,6 +199,8 @@ bool longitudinal_gas_checks(int desired_gas, const LongitudinalLimits limits);
 bool longitudinal_transmission_rpm_checks(int desired_transmission_rpm, const LongitudinalLimits limits);
 bool longitudinal_brake_checks(int desired_brake, const LongitudinalLimits limits);
 void pcm_cruise_check(bool cruise_engaged);
+bool msg_allowed(const CANPacket_t *to_send, const CanMsg msg_list[], int len);
+bool msg_allowed_yj(int bus, int addr, const CanMsg msg_list[], int len) ;
 
 void safety_tick(const safety_config *safety_config);
 
