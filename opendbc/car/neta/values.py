@@ -54,11 +54,21 @@ class CarControllerParams:
     # Limit to ~2.0 m/s^3 up (7.5 deg/s), ~3.5 m/s^3 down (13 deg/s) at 75 mph
     # Worst case, the low speed limits will allow ~4.0 m/s^3 up (15 deg/s) and ~4.9 m/s^3 down (18 deg/s) at 75 mph,
     # however the EPS has its own internal limits at all speeds which are less than that
+    # ANGLE_LIMITS: AngleSteeringLimits = AngleSteeringLimits(
+    #                                               0.02,
+    #                                               ([5, 25], [0.3, 0.15]),
+    #                                               ([5, 25], [0.36, 0.26])
+    # )
     ANGLE_LIMITS: AngleSteeringLimits = AngleSteeringLimits(
-                                                  0.02,
-                                                  ([5, 25], [0.3, 0.15]),
-                                                  ([5, 25], [0.36, 0.26])
+      # EPAS faults above this angle
+      360,  # deg
+      # Angle rate limits are set using the Tesla Model Y VehicleModel such that they maximally meet ISO 11270
+      # At 5 m/s, FSD has been seen hitting up to ~4 deg/frame with ~5 deg/frame at very low creeping speeds
+      # At 30 m/s, FSD has been seen hitting mostly 0.1 deg/frame, sometimes 0.2 deg/frame, and rarely 0.3 deg/frame
+      ([0., 5., 25.], [2.5, 1.5, 0.2]),
+      ([0., 5., 25.], [5., 2.0, 0.3]),
     )
+
     # LKAS_MAX_TORQUE = 1               # A value of 1 is easy to overpower
     # LTA limits
     # EPS ignores commands above this angle and causes PCS to fault

@@ -109,7 +109,8 @@ class CarController(CarControllerBase):
         # steeringAngleOffsetDeg 还没有估计
         apply_angle_cmd = actuators.steeringAngleDeg + CS.out.steeringAngleOffsetDeg
         # Angular rate limit based on speed
-        apply_angle_cmd = apply_std_steer_angle_limits(apply_angle_cmd, self.last_angle, CS.out.vEgo, self.CCP)
+        apply_angle_cmd = apply_std_steer_angle_limits(apply_angle_cmd, self.last_angle, CS.out.vEgo,
+                                                       CS.out.steeringAngleDeg, CC.latActive, CarControllerParams.ANGLE_LIMITS)
         apply_angle_cmd = np.clip(apply_angle_cmd, CS.out.steeringAngleDeg - 20, CS.out.steeringAngleDeg + 20)
         self.last_angle = apply_angle_cmd
       else:
