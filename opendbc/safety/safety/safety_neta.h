@@ -150,6 +150,7 @@ static void neta_rx_hook(const CANPacket_t *to_push) {
       int eps_avaiable = parse_can_data(to_push->data, 0, 1);
       if(eps_avaiable == 1 ) {
         controls_allowed = true;
+        controls_allowed_false_index = 9;
       }
     }
 

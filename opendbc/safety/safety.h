@@ -74,6 +74,8 @@ const int MAX_WRONG_COUNTERS = 5;
 
 // This can be set by the safety hooks
 bool controls_allowed = false;
+// -YJ-
+uint32_t controls_allowed_false_index = 0;
 bool relay_malfunction = false;
 bool gas_pressed = false;
 bool gas_pressed_prev = false;
@@ -124,6 +126,7 @@ static bool is_msg_valid(RxCheck addr_list[], int index) {
     if (!addr_list[index].status.valid_checksum || !addr_list[index].status.valid_quality_flag || (addr_list[index].status.wrong_counters >= MAX_WRONG_COUNTERS)) {
       valid = false;
       controls_allowed = false;
+      controls_allowed_false_index = 1;
     }
   }
   return valid;
@@ -370,6 +373,7 @@ void safety_tick(const safety_config *cfg) {
       cfg->rx_checks[i].status.lagging = lagging;
       if (lagging) {
         controls_allowed = false;
+        controls_allowed_false_index = 2;
       }
 
       if (lagging || !is_msg_valid(cfg->rx_checks, i)) {
@@ -390,21 +394,24 @@ static void generic_rx_checks(bool stock_ecu_detected) {
   // allow 1s of transition timeout after relay changes state before assessing malfunctioning
   const uint32_t RELAY_TRNS_TIMEOUT = 1U;
 
-  // exit controls on rising edge of gas press
+  // exit controls on rising edge of gas press --3
   if (gas_pressed && !gas_pressed_prev && !(alternative_experience & ALT_EXP_DISABLE_DISENGAGE_ON_GAS)) {
     controls_allowed = false;
+    controls_allowed_false_index = 3;
   }
   gas_pressed_prev = gas_pressed;
 
-  // exit controls on rising edge of brake press
+  // exit controls on rising edge of brake press --4
   if (brake_pressed && (!brake_pressed_prev || vehicle_moving)) {
     controls_allowed = false;
+    controls_allowed_false_index = 4;
   }
   brake_pressed_prev = brake_pressed;
 
-  // exit controls on rising edge of regen paddle
+  // exit controls on rising edge of regen paddle --5
   if (regen_braking && (!regen_braking_prev || vehicle_moving)) {
     controls_allowed = false;
+    controls_allowed_false_index = 5;
   }
   regen_braking_prev = regen_braking;
 
@@ -487,6 +494,7 @@ int set_safety_hooks(uint16_t mode, uint16_t param) {
   reset_sample(&angle_meas);
 
   controls_allowed = false;
+  controls_allowed_false_index = 6;
   relay_malfunction_reset();
   safety_rx_checks_invalid = false;
 
@@ -855,9 +863,11 @@ void pcm_cruise_check(bool cruise_engaged) {
   // Enter controls on rising edge of stock ACC, exit controls if stock ACC disengages
   if (!cruise_engaged) {
     controls_allowed = false;
+    controls_allowed_false_index = 7;
   }
   if (cruise_engaged && !cruise_engaged_prev) {
     controls_allowed = true;
+    controls_allowed_false_index = 8;
   }
   cruise_engaged_prev = cruise_engaged;
 }
