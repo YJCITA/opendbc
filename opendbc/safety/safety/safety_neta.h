@@ -61,12 +61,14 @@ static const CanMsg NETA_STOCK_TX_MSGS[] = { {0x8f, 0, 32, true}, {0xfe, 0, 32, 
 static const CanMsg NETA_LONG_TX_MSGS[] = {{ADCS_Fr02_08E, 0, 16, true}, {ADCS_Fr08_193, 0, 64, true}, {ADCS_F12_136, 0, 16, true}};
 
 static RxCheck neta_rx_checks[] = {
-  // {.msg = {{IDB_Fr04_0C7, 0, 32, .check_checksum = false, .max_counter = 0U, .expected_timestep = 10000U}, { 0 }, { 0 }}},
-  // {.msg = {{EPS_Fr01_0B1, 0, 8, .check_checksum = false, .max_counter = 0U, .expected_timestep = 10000U}, { 0 }, { 0 }}},
-  // {.msg = {{IDB_Fr01_0E5, 0, 8, .check_checksum = false, .max_counter = 0U, .expected_timestep = 20000U}, { 0 }, { 0 }}},
-  // // {.msg = {{MSG_TSK_06, 0, 8, .check_checksum = true, .max_counter = 15U, .expected_timestep = 20000U}, { 0 }, { 0 }}},
-  // {.msg = {{VCU_Fr05_0E3, 0, 8, .check_checksum = false, .max_counter = 0U, .expected_timestep = 20000U}, { 0 }, { 0 }}},
-  // // {.msg = {{MSG_MOTOR_14, 0, 8, .check_checksum = false, .max_counter = 0U, .expected_timestep = 100000U}, { 0 }, { 0 }}},
+  {.msg = {{IDB_Fr04_0C7, 0, 32, .frequency = 50U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
+  {.msg = {{EPS_Fr01_0B1, 0, 8, .frequency = 50U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
+  {.msg = {{EPS_Fr02_0B2, 0, 8, .frequency = 50U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
+  {.msg = {{IDB_Fr01_0E5, 0, 8, .frequency = 50U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
+  {.msg = {{IDB_Fr03_0C5, 0, 8, .frequency = 50U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
+  // {.msg = {{MSG_TSK_06, 0, 8, .frequency = 50U, .ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
+  {.msg = {{VCU_Fr05_0E3, 0, 8, .frequency = 50U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
+  // {.msg = {{MSG_MOTOR_14, 0, 8,.frequency = 50U, .ignore_checksum = false, .max_counter = 0U, .expected_timestep = 100000U}, { 0 }, { 0 }}},
 };
 // #define NETA_ADDR_CHECKS_LEN (sizeof(neta_addr_checks) / sizeof(neta_addr_checks[0]))
 // addr_checks neta_rx_checks = {neta_addr_checks, NETA_ADDR_CHECKS_LEN};
@@ -142,13 +144,13 @@ static void neta_rx_hook(const CANPacket_t *to_push) {
   // bool valid = addr_safety_check(to_push, &neta_rx_checks,
   //                                neta_get_checksum, neta_compute_crc, neta_get_counter, NULL);
   bool valid = true;
-
+  // controls_allowed_false_index = 10;
   if (valid && (GET_BUS(to_push) == 0U)) {
     int addr = GET_ADDR(to_push);
-    controls_allowed_false_index = 10;
+    // controls_allowed_false_index = 11;
     if (addr == EPS_Fr02_0B2){
       // eps 没报错的情况下
-      controls_allowed_false_index = 11;
+      // controls_allowed_false_index = 12;
       int eps_avaiable = parse_can_data(to_push->data, 0, 1);
       if(eps_avaiable == 1 ) {
         controls_allowed = true;
@@ -187,13 +189,13 @@ static void neta_rx_hook(const CANPacket_t *to_push) {
     // }
 
     // 如果刹车踏板被踩下，不允许发送ACC控制报文
-    // if(addr == IDB_Fr01_0E5){
-    //   // IDB1_BrakePedalApplied : 0|1@0+ (1,0) [0|1] "NoUnit"  ADAS,FLC_FD3
-    //   brake_pressure_detected = parse_can_data(to_push->data, 0, 1);
-    //   if(brake_pressure_detected){
-    //     controls_allowed = false;
-    //   }
-    // }
+    if(addr == IDB_Fr01_0E5){
+      // IDB1_BrakePedalApplied : 0|1@0+ (1,0) [0|1] "NoUnit"  ADAS,FLC_FD3
+      brake_pressure_detected = parse_can_data(to_push->data, 0, 1);
+      if(brake_pressure_detected){
+        controls_allowed = false;
+      }
+    }
 
     // brake_pressed = brake_pressure_detected;
     // TODO 2024.02.14
@@ -206,6 +208,7 @@ static bool neta_tx_hook(const CANPacket_t *to_send) {
   int addr = GET_ADDR(to_send);
   int bus = GET_BUS(to_send);
   bool tx = true;
+  // controls_allowed_false_index = 13;
   // steering and ACC check
   if (addr == ADCS_Fr02_08E) {
     bool violation_lcc = false;
