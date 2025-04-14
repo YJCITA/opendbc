@@ -145,8 +145,10 @@ static void neta_rx_hook(const CANPacket_t *to_push) {
 
   if (valid && (GET_BUS(to_push) == 0U)) {
     int addr = GET_ADDR(to_push);
+    controls_allowed_false_index = 10;
     if (addr == EPS_Fr02_0B2){
       // eps 没报错的情况下
+      controls_allowed_false_index = 11;
       int eps_avaiable = parse_can_data(to_push->data, 0, 1);
       if(eps_avaiable == 1 ) {
         controls_allowed = true;
