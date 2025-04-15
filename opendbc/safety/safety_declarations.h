@@ -202,6 +202,8 @@ bool longitudinal_gas_checks(int desired_gas, const LongitudinalLimits limits);
 bool longitudinal_transmission_rpm_checks(int desired_transmission_rpm, const LongitudinalLimits limits);
 bool longitudinal_brake_checks(int desired_brake, const LongitudinalLimits limits);
 void pcm_cruise_check(bool cruise_engaged);
+bool msg_allowed(const CANPacket_t *to_send, const CanMsg msg_list[], int len);
+bool msg_allowed_yj(int bus, int addr, const CanMsg msg_list[], int len) ;
 
 void safety_tick(const safety_config *safety_config);
 
@@ -220,6 +222,8 @@ extern bool vehicle_moving;
 extern bool acc_main_on; // referred to as "ACC off" in ISO 15622:2018
 extern int cruise_button_prev;
 extern bool safety_rx_checks_invalid;
+// -YJ-
+extern uint32_t controls_allowed_false_index;
 
 // for safety modes with torque steering control
 extern int desired_torque_last;       // last desired steer torque

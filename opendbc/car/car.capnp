@@ -252,6 +252,31 @@ struct CarState {
     speedOffset @3 :Float32;
     standstill @4 :Bool;
     nonAdaptive @5 :Bool;
+    speedLimit @7 :Float32;
+    
+    lccButton @8 :Bool;
+    epsAvailable @9 :Bool;
+    epsActive @10 :Bool;
+    lccCmdRaw @11 :Float32;
+    lccCmdRawStatus @12 :UInt8;
+    accCmdRaw @13 :Float32;
+    accCmdRawStatus @14 :UInt8;
+    accDistanceLevel @15 :UInt8;
+    steerTorqueKf @16 :Float32;
+    steerTakeover @17 :Bool;
+    idbEPBActive @18 :Bool;
+    leftLaneCoeff @19 :LaneCoeff;
+    rightLaneCoeff @20 :LaneCoeff;
+    centerLaneCoeff @21 :LaneCoeff;
+    accDistance @22 :Float32;
+    gearPos @23 :UInt8;
+  }
+
+  struct LaneCoeff {
+    c0 @0 :Float32;
+    c1 @1 :Float32;
+    c2 @2 :Float32;
+    c3 @3 :Float32;
   }
 
   enum GearShifter {
@@ -631,7 +656,7 @@ struct CarParams {
     hongqi @26;
     body @27;
     hyundaiCanfd @28;
-    volkswagenMqbEvo @29;
+    neta @29;
     chryslerCusw @30;
     psa @31;
     fcaGiorgio @32;
