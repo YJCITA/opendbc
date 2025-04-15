@@ -41,7 +41,7 @@ class CarController(CarControllerBase):
       self.CCS = neta_s_canfd
 
     self.packer_pt = CANPacker(dbc_names[Bus.pt])
-    # self.apply_steer_last = 0
+    self.apply_steer_last = 0
     self.apply_angle_last = 0
 
   def update(self, CC, CS, now_nanos):
@@ -180,7 +180,8 @@ class CarController(CarControllerBase):
         self.msg_0x136_counter = 0
 
     new_actuators = actuators.as_builder()
-    new_actuators.steeringAngleDeg = self.apply_angle_last
+    new_actuators.steeringAngleDeg = float(self.apply_angle_last)
+    # print(f"self.apply_steer_last: {self.apply_steer_last}, self.apply_angle_last: {self.apply_angle_last}")
     # new_actuators.steerOutputCan = self.apply_steer_last
 
     self.latActive_pre = self.lat_active
