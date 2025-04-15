@@ -41,17 +41,10 @@ class CarController(CarControllerBase):
       self.CCS = neta_s_canfd
 
     self.packer_pt = CANPacker(dbc_names[Bus.pt])
-    self.apply_steer_last = 0
+    # self.apply_steer_last = 0
     self.apply_angle_last = 0
-    self.last_angle = 0
-    self.gra_acc_counter_last = None
-    self.frame = 0
-    self.eps_timer_soft_disable_alert = False
-    self.hca_frame_timer_running = 0
-    self.hca_frame_same_torque = 0
 
   def update(self, CC, CS, now_nanos):
-    self.frame += 1
     actuators = CC.actuators
     can_sends = []
     if self.CP.carFingerprint in NETA_CARS:
@@ -109,10 +102,10 @@ class CarController(CarControllerBase):
         # steeringAngleOffsetDeg 还没有估计
         apply_angle_cmd = actuators.steeringAngleDeg + CS.out.steeringAngleOffsetDeg
         # Angular rate limit based on speed
-        apply_angle_cmd = apply_std_steer_angle_limits(apply_angle_cmd, self.last_angle, CS.out.vEgo,
+        apply_angle_cmd = apply_std_steer_angle_limits(apply_angle_cmd, self.apply_angle_last, CS.out.vEgo,
                                                        CS.out.steeringAngleDeg, CC.latActive, CarControllerParams.ANGLE_LIMITS)
         apply_angle_cmd = np.clip(apply_angle_cmd, CS.out.steeringAngleDeg - 20, CS.out.steeringAngleDeg + 20)
-        self.last_angle = apply_angle_cmd
+        # self.last_angle = apply_angle_cmd
       else:
         apply_angle_cmd = CS.out.steeringAngleDeg
 
@@ -187,12 +180,11 @@ class CarController(CarControllerBase):
         self.msg_0x136_counter = 0
 
     new_actuators = actuators.as_builder()
-    new_actuators.steeringAngleDeg = self.apply_steer_last
+    new_actuators.steeringAngleDeg = self.apply_angle_last
     # new_actuators.steerOutputCan = self.apply_steer_last
 
     self.latActive_pre = self.lat_active
     self.lcc_button_pre = CS.out.cruiseState.lccButton
     self.pilot_sys_info_pre = pilot_sys_info
 
-    # self.gra_acc_counter_last = CS.gra_stock_values["COUNTER"]
     return new_actuators, can_sends
