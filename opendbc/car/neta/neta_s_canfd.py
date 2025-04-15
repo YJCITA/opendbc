@@ -69,7 +69,7 @@ def create_steer_and_accel_command_Fr02_08E(packer, CAN, raw_msg,
       "ADCS2_ADAS_EPSAngleReq" : steer_angle_des,
       "ADCS2_ADAS_EPSLateralCtrlType" : 2 if lcc_req else 0,
       # counter 可能是不连续的，所以不用；直接用原车的
-      # "ADCS2_MsgCounter0" : counter,
+    #   "ADCS2_MsgCounter0" : counter,
     })
 
     dat = packer.make_can_msg("ADCS_Fr02_08E", CAN.ECAN, values)[1]

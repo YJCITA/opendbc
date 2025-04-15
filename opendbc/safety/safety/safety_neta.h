@@ -61,11 +61,11 @@ static const CanMsg NETA_STOCK_TX_MSGS[] = { {0x8f, 0, 32, true}, {0xfe, 0, 32, 
 static const CanMsg NETA_LONG_TX_MSGS[] = {{ADCS_Fr02_08E, 0, 16, true}, {ADCS_Fr08_193, 0, 64, true}, {ADCS_F12_136, 0, 16, true}};
 
 static RxCheck neta_rx_checks[] = {
-  {.msg = {{IDB_Fr04_0C7, 0, 32, .frequency = 50U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
-  {.msg = {{EPS_Fr01_0B1, 0, 8, .frequency = 50U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
-  {.msg = {{EPS_Fr02_0B2, 0, 8, .frequency = 50U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
-  {.msg = {{IDB_Fr01_0E5, 0, 8, .frequency = 50U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
-  {.msg = {{IDB_Fr03_0C5, 0, 8, .frequency = 50U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
+  {.msg = {{IDB_Fr04_0C7, 0, 32, .frequency = 100U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
+  {.msg = {{EPS_Fr01_0B1, 0, 8, .frequency = 100U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
+  {.msg = {{EPS_Fr02_0B2, 0, 8, .frequency = 100U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
+  {.msg = {{IDB_Fr01_0E5, 0, 8, .frequency = 100U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
+  {.msg = {{IDB_Fr03_0C5, 0, 8, .frequency = 100U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
   // {.msg = {{MSG_TSK_06, 0, 8, .frequency = 50U, .ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
   {.msg = {{VCU_Fr05_0E3, 0, 8, .frequency = 50U,.ignore_checksum = true, .ignore_counter = true}, { 0 }, { 0 }}},
   // {.msg = {{MSG_MOTOR_14, 0, 8,.frequency = 50U, .ignore_checksum = false, .max_counter = 0U, .expected_timestep = 100000U}, { 0 }, { 0 }}},
@@ -143,14 +143,14 @@ static void neta_rx_hook(const CANPacket_t *to_push) {
   // TODO
   // bool valid = addr_safety_check(to_push, &neta_rx_checks,
   //                                neta_get_checksum, neta_compute_crc, neta_get_counter, NULL);
-  bool valid = true;
-  // controls_allowed_false_index = 10;
-  if (valid && (GET_BUS(to_push) == 0U)) {
-    int addr = GET_ADDR(to_push);
-    // controls_allowed_false_index = 11;
+  int bus = GET_BUS(to_push);
+  int addr = GET_ADDR(to_push);
+  controls_allowed_false_index = 10;
+  if (bus == 0) {
+    controls_allowed_false_index = 11;
     if (addr == EPS_Fr02_0B2){
       // eps 没报错的情况下
-      // controls_allowed_false_index = 12;
+      controls_allowed_false_index = 12;
       int eps_avaiable = parse_can_data(to_push->data, 0, 1);
       if(eps_avaiable == 1 ) {
         controls_allowed = true;
@@ -193,6 +193,7 @@ static void neta_rx_hook(const CANPacket_t *to_push) {
       // IDB1_BrakePedalApplied : 0|1@0+ (1,0) [0|1] "NoUnit"  ADAS,FLC_FD3
       brake_pressure_detected = parse_can_data(to_push->data, 0, 1);
       if(brake_pressure_detected){
+        controls_allowed_false_index = 13;
         controls_allowed = false;
       }
     }
@@ -208,7 +209,6 @@ static bool neta_tx_hook(const CANPacket_t *to_send) {
   int addr = GET_ADDR(to_send);
   int bus = GET_BUS(to_send);
   bool tx = true;
-  // controls_allowed_false_index = 13;
   // steering and ACC check
   if (addr == ADCS_Fr02_08E) {
     bool violation_lcc = false;
@@ -247,12 +247,15 @@ static bool neta_tx_hook(const CANPacket_t *to_send) {
 
   tx = tx && tx1;
   // 1 allows the message through
+  //   for debug
+  tx = true;
   return tx ;
 }
 
 // receive can data , trans to bus
+// return is block
 static bool neta_fwd_hook(int bus_num, int addr) {
-  bool bus_fwd = false;
+  bool block_msg = false;
   int tx=0, tx1=0, tx2=0;
   switch (bus_num) {
     case 0:
@@ -262,32 +265,20 @@ static bool neta_fwd_hook(int bus_num, int addr) {
       tx2 = msg_allowed_yj(2, addr, NETA_STOCK_TX_MSGS, sizeof(NETA_STOCK_TX_MSGS) / sizeof(NETA_STOCK_TX_MSGS[0]));
        if (tx1 || tx2) {
         // openpilot takes over acc and lcc
-        bus_fwd = false;
-      } else {
-        // Forward all remaining traffic from Extended CAN devices to J533 gateway
-        bus_fwd = true;
-      }
-      // -YJ- for debug
-      bus_fwd = true;
+        block_msg = true;
+      } 
       break;
     case 2:
       tx = msg_allowed_yj(0, addr, NETA_LONG_TX_MSGS, sizeof(NETA_LONG_TX_MSGS) / sizeof(NETA_LONG_TX_MSGS[0]));
       // tx1 = msg_allowed_yj(bus_num, addr, NETA_STOCK_TX_MSGS, sizeof(NETA_STOCK_TX_MSGS) / sizeof(NETA_STOCK_TX_MSGS[0]));
       if (tx) {
         // openpilot takes over acc and lcc
-        bus_fwd = false;
-      } else {
-        // Forward all remaining traffic from Extended CAN devices to J533 gateway
-        bus_fwd = true;
-      }
-      break;
-    default:
-      // No other buses should be in use; fallback to do-not-forward
-      bus_fwd = false;
+        block_msg = true;
+      } 
       break;
   }
 
-  return bus_fwd;
+  return block_msg;
 }
 
 const safety_hooks neta_hooks = {
