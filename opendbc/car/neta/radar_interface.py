@@ -37,9 +37,6 @@ class RadarInterface(RadarInterfaceBase):
     self.track_id = 0
     self.radar_ts = CP.radarTimeStep
     self.radar = DBC[CP.carFingerprint]['radar']
-
-    print("neta radar type: ", self.radar, " !!!")
-
     self.install_lat_offset = 0 #相对车头中心横向安装位置 # left is +
     self.install_lon_offset = 0 #相对车头中心纵向向安装位置 # 前 is +
     self.install_yaw = 0/57.3

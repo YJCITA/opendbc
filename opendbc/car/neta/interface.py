@@ -9,31 +9,9 @@ from opendbc.car.neta.carcontroller import CarController
 from opendbc.car import get_safety_config, structs
 
 
-# ButtonType = car.CarState.ButtonEvent.Type
-# EventName = car.CarEvent.EventName
-# SteerControlType = car.CarParams.SteerControlType
-
-# # TODO
-# # ENABLE_BUTTONS = (CruiseButtons.RES_ACCEL, CruiseButtons.SET_DECEL, CruiseButtons.CANCEL)
-
-# ButtonType = car.CarState.ButtonEvent.Type
-# BUTTONS_DICT = {CruiseButtons.ACCEL: ButtonType.accelCruise, CruiseButtons.DECEL: ButtonType.decelCruise,
-#                 CruiseButtons.SET: ButtonType.setCruise, CruiseButtons.CANCEL: ButtonType.cancel,
-#                 CruiseButtons.RESUME: ButtonType.resumeCruise}
-
 class CarInterface(CarInterfaceBase):
   CarState = CarState
   CarController = CarController
-  # def __init__(self, CP, CarController, CarState):
-  #   super().__init__(CP, CarController, CarState)
-
-  #   self.CAN = CanBus(CP)
-  #   if CP.networkLocation == NetworkLocation.fwdCamera:
-  #     self.ext_bus = self.CAN._e
-  #     self.cp_ext = self.cp
-  #   else:
-  #     self.ext_bus = self.CAN._cam
-  #     self.cp_ext = self.cp_cam
 
   @staticmethod
   def _get_params(ret: structs.CarParams, candidate: CAR, fingerprint, car_fw, experimental_long, docs) -> structs.CarParams:
@@ -74,85 +52,24 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.kpV = [0.1]
     ret.longitudinalTuning.kiV = [0.0]
 
-    if candidate == CAR.NETA_L_ARS513 or candidate == CAR.NETA_L_CH or candidate == CAR.NETA_L_VISION:
-      ret.radarUnavailable = False
-      ret.openpilotLongitudinalControl = True
-      ret.steerControlType = structs.CarParams.SteerControlType.angle
+    if candidate == CAR.NETA_L_ARS513 or candidate == CAR.NETA_L_CH :
+        ret.radarUnavailable = False
 
-      # -YJ- red panda, two panda
-      # cfgs = [get_safety_config(car.CarParams.SafetyModel.neta), ]
-      # cfgs.insert(0, get_safety_config(car.CarParams.SafetyModel.noOutput))
+    ret.openpilotLongitudinalControl = True
+    ret.steerControlType = structs.CarParams.SteerControlType.angle
 
-      # wheelbase @18 :Float32;       # [m] distance from rear axle to front axle
-      # centerToFront @19 :Float32;   # [m] distance from center of mass to front axle
+    cfgs = [get_safety_config(car.CarParams.SafetyModel.neta), ]
+    cfgs.insert(0, get_safety_config(car.CarParams.SafetyModel.noOutput))
 
-    #   cfgs_raw = [get_safety_config(car.CarParams.SafetyModel.neta), get_safety_config(car.CarParams.SafetyModel.neta)]
-      cfgs = [get_safety_config(car.CarParams.SafetyModel.neta), ]
-      cfgs.insert(0, get_safety_config(car.CarParams.SafetyModel.noOutput))
+    ret.safetyConfigs = cfgs
+    ret.mass = 2070 + STD_CARGO_KG
+    ret.wheelbase = 2.81
+    ret.steerRatio = 15.84
+    tire_stiffness_factor = 0.5533
+    ret.steerActuatorDelay = 0 #0.25
+    ret.steerLimitTimer = 0.8
 
-      ret.safetyConfigs = cfgs
-      ret.mass = 2070 + STD_CARGO_KG
-      ret.wheelbase = 2.81
-      ret.steerRatio = 15.84
-      tire_stiffness_factor = 0.5533
-      ret.steerActuatorDelay = 0 #0.25
-      ret.steerLimitTimer = 0.8
-
-    else:
-      CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
-      ret.steerActuatorDelay = 0.12  # Default delay, Prius has larger delay
-      ret.steerLimitTimer = 0.4
-      raise ValueError(f"unsupported car {candidate}")
 
     ret.autoResumeSng = ret.minEnableSpeed == -1
     ret.centerToFront = ret.wheelbase * 0.45
     return ret
-
-  # # returns a car.CarState
-  # def _update(self, c):
-  #   ret = self.CS.update(self.cp, self.cp_cam)
-
-  #   # self.CS.mads_enabled = self.get_sp_cruise_main_state(ret)
-  #   self.CS.mads_enabled = True
-
-  #   # self.CS.accEnabled = self.get_sp_v_cruise_non_pcm_state(ret, c.vCruise, self.CS.accEnabled,
-  #   #                                                         enable_buttons=(ButtonType.setCruise, ButtonType.resumeCruise))
-  #   self.CS.accEnabled = True
-
-  #   ret.buttonEvents = [
-  #     *create_button_events(self.CS.cruise_buttons, self.CS.prev_cruise_buttons, BUTTONS_DICT),
-  #     # *create_button_events(self.CS.cruise_setting, self.CS.prev_cruise_setting, {1: ButtonType.altButton1}),
-  #   ]
-
-  #   events = self.create_common_events(ret, c)
-
-  #   # On some newer model years, the CANCEL button acts as a pause/resume button based on the PCM state
-  #   # To avoid re-engaging when openpilot cancels, check user engagement intention via buttons
-  #   # Main button also can trigger an engagement on these cars
-  #   # allow_enable = any(btn in ENABLE_BUTTONS for btn in self.CS.cruise_buttons) or any(self.CS.main_buttons)
-  #   # events = self.create_common_events(ret, pcm_enable=self.CS.CP.pcmCruise, allow_enable=True)
-
-  #   # Low speed steer alert hysteresis logic
-  #   if self.CP.minSteerSpeed > 0. and ret.vEgo < (self.CP.minSteerSpeed + 1.):
-  #     self.low_speed_alert = True
-  #   elif ret.vEgo > (self.CP.minSteerSpeed + 2.):
-  #     self.low_speed_alert = False
-  #   if self.low_speed_alert:
-  #     events.add(EventName.belowSteerSpeed)
-
-  #   if self.CS.CP.openpilotLongitudinalControl:
-  #     if ret.vEgo < self.CP.minEnableSpeed + 0.5:
-  #       events.add(EventName.belowEngageSpeed)
-  #     if c.enabled and ret.vEgo < self.CP.minEnableSpeed:
-  #       events.add(EventName.speedTooLow)
-
-  #   if self.CC.eps_timer_soft_disable_alert:
-  #     events.add(EventName.steerTimeLimit)
-
-  #   ret.events = events.to_msg()
-
-  #   return ret
-
-  # # def apply(self, c, now_nanos, frogpilot_toggles):
-  # #   new_actuators, can_sends, self.eps_timer_soft_disable_alert = self.CC.update(c, self.CS, self.ext_bus, now_nanos, frogpilot_toggles)
-  # #   return new_actuators, can_sends
