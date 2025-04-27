@@ -44,16 +44,16 @@ class CarController(CarControllerBase):
     self.apply_steer_last = 0
     self.apply_angle_last = 0
 
-  def update(self, CC, CS, now_nanos):
+  def update(self, CC, CC_SP, CS, now_nanos):
     actuators = CC.actuators
     can_sends = []
     if self.CP.carFingerprint in NETA_CARS:
       if self.enable_control_can_sends:
-        return self.update_control_neta_s(CC, CS, now_nanos)
+        return self.update_control_neta_s(CC, CC_SP, CS, now_nanos)
       else:
         return actuators, can_sends, False
     else:
-      return self.update_control_neta_s(CC, CS, now_nanos)
+      return self.update_control_neta_s(CC, CC_SP, CS, now_nanos)
 
   ###### neta s
   def update_control_neta_s(self, CC, CC_SP, CS, now_nanos):
