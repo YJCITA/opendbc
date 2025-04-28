@@ -45,7 +45,7 @@ class CarState(CarStateBase):
     # debug
     self.debug = False
     self.debug1 = False
-    self.enable_op_acc_state_manage = True # 是否使用OP本地acc状态机控制  一般用原车
+    self.enable_op_acc_state_manage = False # 是否使用OP本地acc状态机控制  一般用原车
     self.enable_op_lcc_state_manage = True # 是否使用OP本地lcc状态机控制   默认用op
     # -YJ-  acc status: 1:ON  0:OFF
     self.curise_speed_set_cool_counter = 0
@@ -316,7 +316,7 @@ class CarState(CarStateBase):
       if self.gear_shifter_raw == 4 and gear_pos == 0x5:
         # 如果没有初始化，那就设置当前速度为ACC速度
         if self.cruise_speed == 0:
-              self.cruise_speed = max(ret.vEgoRaw, 15*CV.KPH_TO_MS)
+            self.cruise_speed = max(ret.vEgoRaw, 15*CV.KPH_TO_MS)
 
         # # 速度差不能大于50km/h
         # if abs(ret.vEgoRaw - self.cruise_speed) > 50*CV.KPH_TO_MS:
