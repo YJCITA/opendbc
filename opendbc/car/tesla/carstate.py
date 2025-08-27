@@ -49,7 +49,9 @@ class CarState(CarStateBase, TorqueBlendingCarState):
     # Brake pedal
     ret.brake = 0
     # ret.brakePressed = cp_party.vl["IBST_status"]["IBST_driverBrakeApply"] == 2
-    ret.brakePressed = False
+    ret.brakePressed = cp_party.vl["IBST_status_new"]["BrakeApplyed"] == 1
+    print(f"BrakeApplyed: {cp_party.vl["IBST_status_new"]["BrakeApplyed"]}")
+    # ret.brakePressed = False
 
     # Steering wheel
     epas_status = cp_party.vl["EPAS3S_sysStatus"]
