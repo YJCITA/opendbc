@@ -138,6 +138,11 @@ BO_ 925 IBST_status: 5 PARTY
  SG_ IBST_statusCounter : 8|4@1+ (1,0) [0|15] ""  X
  SG_ IBST_statusChecksum : 0|8@1+ (1,0) [0|255] ""  X
 
+BO_ 272 IBST_status_new: 4 PARTY
+ SG_ counter : 11|4@0+ (1,0) [0|15] "" XXX
+ SG_ BrakeValue : 15|12@1+ (0.1,0) [0|4095] "" XXX
+ SG_ BrakeApplyed : 27|1@0+ (1,0) [0|1] "" XXX
+
 BO_ 880 EPAS3S_sysStatus: 8 PARTY
  SG_ EPAS3S_sysStatusChecksum : 56|8@1+ (1,0) [0|255] ""  park
  SG_ EPAS3S_sysStatusCounter : 48|4@1+ (1,0) [0|15] ""  gtw

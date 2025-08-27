@@ -48,7 +48,12 @@ class CarState(CarStateBase, CarStateExt):
 
     # Brake pedal
     ret.brake = 0
-    ret.brakePressed = cp_party.vl["IBST_status"]["IBST_driverBrakeApply"] == 2
+    # ret.brakePressed = cp_party.vl["IBST_status"]["IBST_driverBrakeApply"] == 2
+
+    # trans to 0-100
+    brake_value = cp_party.vl["IBST_status_new"]["BrakeValue"]/2.55
+    ret.brakePressed = cp_party.vl["IBST_status_new"]["BrakeApplyed"] == 1
+    # print(f"BrakeApplyed: {cp_party.vl["IBST_status_new"]["BrakeApplyed"]}")
 
     # Steering wheel
     epas_status = cp_party.vl["EPAS3S_sysStatus"]
