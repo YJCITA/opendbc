@@ -51,10 +51,10 @@ class CarState(CarStateBase, TorqueBlendingCarState):
     # ret.brakePressed = cp_party.vl["IBST_status"]["IBST_driverBrakeApply"] == 2
 
     # 0-100
+    break_pressed_min_value = 3
     brake_value = cp_party.vl["IBST_status_new"]["BrakeValue"]
     # TODO: check if this is correct
     brake_applyed = cp_party.vl["IBST_status_new"]["BrakeApplyed"] == 1
-    break_pressed_min_value = 3
     ret.brakePressed = True if brake_value > break_pressed_min_value else False
     # print(f"BrakeApplyed: {cp_party.vl["IBST_status_new"]["BrakeApplyed"]}")
 
