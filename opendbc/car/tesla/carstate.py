@@ -50,9 +50,12 @@ class CarState(CarStateBase, CarStateExt):
     ret.brake = 0
     # ret.brakePressed = cp_party.vl["IBST_status"]["IBST_driverBrakeApply"] == 2
 
-    # trans to 0-100
-    brake_value = cp_party.vl["IBST_status_new"]["BrakeValue"]/2.55
-    ret.brakePressed = cp_party.vl["IBST_status_new"]["BrakeApplyed"] == 1
+    # 0-100
+    break_pressed_min_value = 3
+    brake_value = cp_party.vl["IBST_status_new"]["BrakeValue"]
+    # TODO: check if this is correct
+    brake_applyed = cp_party.vl["IBST_status_new"]["BrakeApplyed"] == 1
+    ret.brakePressed = True if brake_value > break_pressed_min_value else False
     # print(f"BrakeApplyed: {cp_party.vl["IBST_status_new"]["BrakeApplyed"]}")
 
     # Steering wheel

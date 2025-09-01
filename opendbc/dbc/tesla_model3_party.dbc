@@ -140,7 +140,7 @@ BO_ 925 IBST_status: 5 PARTY
 
 BO_ 272 IBST_status_new: 4 PARTY
  SG_ counter : 11|4@0+ (1,0) [0|15] "" XXX
- SG_ BrakeValue : 15|12@1+ (0.1,0) [0|4095] "" XXX
+ SG_ BrakeValue : 15|12@1+ (0.039215686,0) [0|100] "%" XXX
  SG_ BrakeApplyed : 27|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 880 EPAS3S_sysStatus: 8 PARTY
