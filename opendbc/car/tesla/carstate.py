@@ -49,7 +49,6 @@ class CarState(CarStateBase, CarStateExt):
     # Brake pedal
     ret.brake = 0
     # ret.brakePressed = cp_party.vl["IBST_status"]["IBST_driverBrakeApply"] == 2
-    brakePressed_0x39d = cp_party.vl["IBST_status"]["IBST_driverBrakeApply"] == 2
 
     # model Y new 2025 is different
     # 0-100
