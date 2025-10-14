@@ -5,6 +5,7 @@ Copyright (c) 2021-, Haibin Wen, sunnypilot, and a number of other contributors.
 This file is part of sunnypilot and is licensed under the MIT License.
 See the LICENSE.md file in the root directory for more details.
 """
+import math
 from enum import Enum, auto
 from dataclasses import dataclass
 
@@ -56,10 +57,10 @@ def override_above_holding_torque(driver_torque: float, holding_torque: float) -
     return not (torque_override_left <= driver_torque <= torque_override_right)
 
 
-def get_lat_accel_from_steer(steer: float, v_ego: float, VM: VehicleModel) -> float:
-    """Calculate the lateral acceleration based on steering angle."""
-    curvature = VM.get_curvature(steer, v_ego, 0.0)
-    return (v_ego ** 2) * curvature
+def get_lat_accel_from_steer(steer: float, v_ego: float, VM: VehicleModel):
+  """Calculate the lateral acceleration based on steering angle."""
+  curvature = VM.calc_curvature(math.radians(steer), v_ego, 0)  # 1/m
+  return curvature * v_ego ** 2  # m/s^2
 
 
 class LateralPauseState(Enum):
