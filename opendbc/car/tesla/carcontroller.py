@@ -64,6 +64,7 @@ class CarController(CarControllerBase, CoopSteeringCarController):
     # TODO: HUD control
     new_actuators = actuators.as_builder()
     new_actuators.steeringAngleDeg = self.apply_angle_last
+    new_actuators.accel = self.debug_angle_desired_limited # debug
 
     self.frame += 1
     return new_actuators, can_sends

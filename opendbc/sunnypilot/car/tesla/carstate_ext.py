@@ -36,7 +36,6 @@ class CarStateExt(CoopSteeringCarState):
       ret.buttonEvents = [*create_button_events(self.infotainment_3_finger_press, prev_infotainment_3_finger_press,
                                                 {3: ButtonType.lkas})]
 
-
     cp_party = can_parsers[Bus.party]
     cp_ap_party = can_parsers[Bus.ap_party]
 
