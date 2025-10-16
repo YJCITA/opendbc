@@ -47,16 +47,8 @@ class CarState(CarStateBase, CarStateExt):
     ret.gasPressed = cp_party.vl["DI_systemStatus"]["DI_accelPedalPos"] > 0
 
     # Brake pedal
-    ret.brake = 0
-    # ret.brakePressed = cp_party.vl["IBST_status"]["IBST_driverBrakeApply"] == 2
-
-    # model Y new 2025 is different
-    # 0-100
-    break_pressed_min_value = 3
-    brake_value = cp_party.vl["IBST_status_new"]["BrakeValue"]
-    # TODO: check if this is correct
-    brake_applyed = cp_party.vl["IBST_status_new"]["BrakeApplyed"] == 1
-    ret.brakePressed = True if brake_value > break_pressed_min_value else False
+    ret.brake = cp_party.vl["IBST_status_new"]["BrakeValue"]
+    ret.brakePressed = cp_party.vl["ESP_status"]["ESP_driverBrakeApply"] == 2
 
     # Steering wheel
     epas_status = cp_party.vl["EPAS3S_sysStatus"]
