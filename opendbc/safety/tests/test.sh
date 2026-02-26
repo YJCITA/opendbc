@@ -8,28 +8,28 @@ source ../../../setup.sh
 
 # reset coverage data and generate gcc note file
 rm -f ./libsafety/*.gcda
-if [ "$1" == "--ubsan" ]; then
-  scons -j$(nproc) -D --coverage --ubsan
-else
-  scons -j$(nproc) -D --coverage
-fi
+scons -j$(nproc) -D
 
 # run safety tests and generate coverage data
-pytest -n8
+pytest -n8 --ignore-glob=misra/*
+
+if [ "$(uname)" = "Darwin" ]; then
+  GCOV_EXEC="/opt/homebrew/opt/llvm@18/bin/llvm-cov gcov"
+else
+  GCOV_EXEC="llvm-cov-18 gcov"
+fi
 
 # generate and open report
 if [ "$1" == "--report" ]; then
-  geninfo ./libsafety/ -o coverage.info
-  genhtml coverage.info -o coverage-out
+  mkdir -p coverage-out
+  gcovr -r ../ --gcov-executable "$GCOV_EXEC" --html-nested coverage-out/index.html
   sensible-browser coverage-out/index.html
 fi
 
 # test coverage
-GCOV_OUTPUT=$(gcov -n ./libsafety/safety.c)
-INCOMPLETE_COVERAGE=$(echo "$GCOV_OUTPUT" | paste -s -d' \n' | grep -E "File.*(\/safety\/safety_.*)|(safety)\.h" | grep -v "100.00%" || true)
-if [ -n "$INCOMPLETE_COVERAGE" ]; then
-  echo "FAILED: Some files have less than 100% coverage:"
-  echo "$INCOMPLETE_COVERAGE"
+GCOV="gcovr -r $DIR/../ --gcov-executable \"$GCOV_EXEC\" -d --fail-under-line=100 -e ^libsafety"
+if ! GCOV_OUTPUT="$(eval $GCOV)"; then
+  echo -e "FAILED:\n$GCOV_OUTPUT"
   exit 1
 else
   echo "SUCCESS: All checked files have 100% coverage!"

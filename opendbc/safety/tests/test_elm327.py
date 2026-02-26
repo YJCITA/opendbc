@@ -15,6 +15,7 @@ class TestElm327(TestDefaultRxHookBase):
                                       *range(0x18DA00F1, 0x18DB00F1, 0x100),  # 29-bit UDS physical addressing
                                       *[0x18DB33F1],  # 29-bit UDS functional address
                                       ] for bus in range(4)]
+  FWD_BUS_LOOKUP = {}
 
   def setUp(self):
     self.safety = libsafety_py.libsafety
@@ -38,6 +39,9 @@ class TestElm327(TestDefaultRxHookBase):
     for byte in range(0xff):
       should_tx = (byte >> 4) <= 3
       self.assertEqual(should_tx, self._tx(common.make_msg(0, GM_CAMERA_DIAG_ADDR, dat=bytes([byte] * 8))))
+
+    # test GM camera diagnostic address with malformed length
+    self.assertEqual(False, self._tx(common.make_msg(0, GM_CAMERA_DIAG_ADDR, dat=bytes([0x00] * 7))))
 
   def test_tx_hook_on_wrong_safety_mode(self):
     # No point, since we allow many diagnostic addresses

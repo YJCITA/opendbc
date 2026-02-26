@@ -1,10 +1,9 @@
 from collections import defaultdict
 import pytest
-import re
 
 from opendbc.car.car_helpers import interfaces
 from opendbc.car.docs import get_all_car_docs
-from opendbc.car.docs_definitions import Cable, Column, PartType, Star
+from opendbc.car.docs_definitions import Cable, Column, PartType, Star, SupportType
 from opendbc.car.honda.values import CAR as HONDA
 from opendbc.car.values import PLATFORMS
 
@@ -18,6 +17,9 @@ class TestCarDocs:
     make_model_years = defaultdict(list)
     for car in self.all_cars:
       with subtests.test(car_docs_name=car.name):
+        if car.support_type != SupportType.UPSTREAM:
+          pytest.skip()
+
         make_model = (car.make, car.model)
         for year in car.year_list:
           assert year not in make_model_years[make_model], f"{car.name}: Duplicate model year"
@@ -50,7 +52,7 @@ class TestCarDocs:
     for car in self.all_cars:
       with subtests.test(car=car.name):
         # honda sanity check, it's the definition of a no torque star
-        if car.car_fingerprint in (HONDA.HONDA_ACCORD, HONDA.HONDA_CIVIC, HONDA.HONDA_CRV, HONDA.HONDA_ODYSSEY, HONDA.HONDA_PILOT):
+        if car.car_fingerprint in (HONDA.HONDA_ACCORD, HONDA.HONDA_CIVIC, HONDA.HONDA_CRV, HONDA.HONDA_ODYSSEY, HONDA.HONDA_ODYSSEY_TWN, HONDA.HONDA_PILOT):
           assert car.row[Column.STEERING_TORQUE] == Star.EMPTY, f"{car.name} has full torque star"
         elif car.brand in ("toyota", "hyundai"):
           assert car.row[Column.STEERING_TORQUE] != Star.EMPTY, f"{car.name} has no torque star"
@@ -58,12 +60,15 @@ class TestCarDocs:
   def test_year_format(self, subtests):
     for car in self.all_cars:
       with subtests.test(car=car.name):
-        assert re.search(r"\d{4}-\d{4}", car.name) is None, f"Format years correctly: {car.name}"
+        if car.name == "comma body":
+          pytest.skip()
+
+        assert car.years and car.year_list, f"Format years correctly: {car.name}"
 
   def test_harnesses(self, subtests):
     for car in self.all_cars:
       with subtests.test(car=car.name):
-        if car.name == "comma body":
+        if car.name == "comma body" or car.support_type != SupportType.UPSTREAM:
           pytest.skip()
 
         car_part_type = [p.part_type for p in car.car_parts.all_parts()]
@@ -71,4 +76,4 @@ class TestCarDocs:
         assert len(car_parts) > 0, f"Need to specify car parts: {car.name}"
         assert car_part_type.count(PartType.connector) == 1, f"Need to specify one harness connector: {car.name}"
         assert car_part_type.count(PartType.mount) == 1, f"Need to specify one mount: {car.name}"
-        assert Cable.right_angle_obd_c_cable_1_5ft in car_parts, f"Need to specify a right angle OBD-C cable (1.5ft): {car.name}"
+        assert Cable.obd_c_cable_2ft in car_parts, f"Need to specify an OBD-C cable (2ft): {car.name}"

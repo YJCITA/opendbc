@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 from opendbc.car import get_safety_config, structs
 from opendbc.car.common.conversions import Conversions as CV
-from opendbc.car.mazda.values import CAR, LKAS_LIMITS
 from opendbc.car.interfaces import CarInterfaceBase
-
+from opendbc.car.mazda.carcontroller import CarController
+from opendbc.car.mazda.carstate import CarState
+from opendbc.car.mazda.values import CAR, LKAS_LIMITS
 
 
 class CarInterface(CarInterfaceBase):
+  CarState = CarState
+  CarController = CarController
 
   @staticmethod
-  def _get_params(ret: structs.CarParams, candidate, fingerprint, car_fw, experimental_long, docs) -> structs.CarParams:
+  def _get_params(ret: structs.CarParams, candidate, fingerprint, car_fw, alpha_long, is_release, docs) -> structs.CarParams:
     ret.brand = "mazda"
     ret.safetyConfigs = [get_safety_config(structs.CarParams.SafetyModel.mazda)]
     ret.radarUnavailable = True
@@ -25,5 +28,12 @@ class CarInterface(CarInterfaceBase):
       ret.minSteerSpeed = LKAS_LIMITS.DISABLE_SPEED * CV.KPH_TO_MS
 
     ret.centerToFront = ret.wheelbase * 0.41
+
+    return ret
+
+  @staticmethod
+  def _get_params_sp(stock_cp: structs.CarParams, ret: structs.CarParamsSP, candidate, fingerprint: dict[int, dict[int, int]],
+                     car_fw: list[structs.CarParams.CarFw], alpha_long: bool, is_release_sp: bool, docs: bool) -> structs.CarParamsSP:
+    ret.intelligentCruiseButtonManagementAvailable = True
 
     return ret
