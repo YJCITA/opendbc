@@ -22,8 +22,11 @@ class CarStateExt:
 
     self.infotainment_3_finger_press = 0
 
-    self.gas_combo_prev = False
+    self.gap_adjust_prev = False  # scroll+cruise for gap adjustment (no gas required)
+    self.gap_adjust_press_after_stable = False  # True only if current press started after cruise was already stable
     self.brake_combo_prev = False
+    self.cruise_enabled_prev = False
+    self.cruise_enabled_frames = 0  # debounce: only emit gap_adjust after cruise stable
 
   def update(self, ret: structs.CarState, ret_sp: structs.CarStateSP, can_parsers: dict[StrEnum, CANParser]) -> None:
     button_events = []
@@ -51,16 +54,30 @@ class CarStateExt:
 
     ret.genericToggle = cp_party.vl["UI_warning"]["scrollWheelPressed"] != 0
 
-    # Add gas + scroll press combo as a button event for gap adjustment
-    gas_combo = ret.gasPressed and ret.genericToggle and ret.cruiseState.enabled
-    button_events += create_button_events(int(gas_combo), int(self.gas_combo_prev), {1: ButtonType.gapAdjustCruise})
+    # Gap adjustment: scroll+cruise. Only emit release when press started after cruise was already stable (avoids
+    # activation gesture press+release firing gapAdjustCruise and changing personality).
+    gap_adjust = ret.genericToggle and ret.cruiseState.enabled
+    if ret.cruiseState.enabled:
+      self.cruise_enabled_frames += 1
+    else:
+      self.cruise_enabled_frames = 0
+    cruise_stable = self.cruise_enabled_prev and self.cruise_enabled_frames >= 200  # ~2s at 100Hz
+
+    if gap_adjust and not self.gap_adjust_prev:
+      self.gap_adjust_press_after_stable = cruise_stable
+    if not gap_adjust:
+      self.gap_adjust_press_after_stable = False
+
+    if cruise_stable and (gap_adjust != self.gap_adjust_prev) and (gap_adjust or self.gap_adjust_press_after_stable):
+      button_events += create_button_events(int(gap_adjust), int(self.gap_adjust_prev), {1: ButtonType.gapAdjustCruise})
+    self.gap_adjust_prev = gap_adjust
 
     # Add brake + scroll press combo as a button event for LKAS
     brake_combo = ret.brakePressed and ret.genericToggle
     button_events += create_button_events(int(brake_combo), int(self.brake_combo_prev), {1: ButtonType.lkas})
     ret.buttonEvents = button_events
-    self.gas_combo_prev = gas_combo
     self.brake_combo_prev = brake_combo
+    self.cruise_enabled_prev = ret.cruiseState.enabled
 
   @staticmethod
   def get_parser(CP: structs.CarParams, CP_SP: structs.CarParamsSP) -> dict[StrEnum, CANParser]:

@@ -52,7 +52,7 @@ class CarState(CarStateBase, CarStateExt):
 
     # Displayed speed: ~1% scale vs DI_vehicleSpeed, with half-unit hysteresis
     ui_speed_units = self.can_define.dv["DI_speed"]["DI_uiSpeedUnits"].get(int(cp_party.vl["DI_speed"]["DI_uiSpeedUnits"]), None)
-    ui_speed_scale = 1.01
+    ui_speed_scale = 1.00625
     if ui_speed_units == "DI_SPEED_KPH":
       ret.vEgoCluster = cp_party.vl["DI_speed"]["DI_uiSpeed"] * CV.KPH_TO_MS
     elif ui_speed_units == "DI_SPEED_MPH":
